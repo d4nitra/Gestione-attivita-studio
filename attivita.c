@@ -85,6 +85,39 @@ Nodo* ricercaAttivita(ListaAttivita lista, const char *descrizione) {
 
 /*
 --------------------------------------------------------
+|  Funzione: monitoraggioProgresso
+|  Scopo: Calcola il tempo rimanente per ogni attività
+|         e visualizza se è completata, in corso o in ritardo.
+|  Parametri:
+|    - lista: puntatore alla lista di attività.
+|  Ritorno: Nessuno.
+--------------------------------------------------------
+*/
+void monitoraggioProgresso(ListaAttivita lista) {
+    time_t t = time(NULL);
+    struct tm tm = *localtime(&t);
+
+    printf("\n--- Monitoraggio del Progresso ---\n");
+
+    while (lista != NULL) {
+        int giorno, mese, anno;
+        sscanf(lista->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
+        int giorni_rimanenti = (anno - (tm.tm_year + 1900)) * 365 + (mese - (tm.tm_mon + 1)) * 30 + (giorno - tm.tm_mday);
+
+        printf("\nAttività: %s\n", lista->attivita.descrizione);
+        if (lista->attivita.completato) {
+            printf("Stato: ✅ Completata\n");
+        } else if (giorni_rimanenti >= 0) {
+            printf("Stato: ⏳ In corso (%d giorni rimanenti)\n", giorni_rimanenti);
+        } else {
+            printf("Stato: ❌ In ritardo (%d giorni di ritardo)\n", -giorni_rimanenti);
+        }
+        lista = lista->next;
+    }
+}
+
+/*
+--------------------------------------------------------
 |  Funzione: rimuoviAttivita
 |  Scopo: Rimuove un'attività dalla lista tramite descrizione.
 |  Parametri:
