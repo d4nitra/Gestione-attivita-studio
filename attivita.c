@@ -82,6 +82,60 @@ Nodo* ricercaAttivita(ListaAttivita lista, const char *descrizione) {
     }
     return NULL;
 }
+/*
+--------------------------------------------------------
+|  Funzione: generaReportSettimanale
+|  Scopo: Genera un report delle attività settimanali
+|         suddivise in completate, in corso e in ritardo.
+|  Parametri:
+|    - lista: puntatore alla lista di attività.
+|  Ritorno: Nessuno.
+--------------------------------------------------------
+*/
+void generaReportSettimanale(ListaAttivita lista) {
+    printf("\n--- Report Settimanale ---\n");
+    printf("\n✅ Attività Completate:\n");
+    ListaAttivita temp = lista;
+    while (temp != NULL) {
+        if (temp->attivita.completato) {
+            printf("- %s (%s)\n", temp->attivita.descrizione, temp->attivita.dataScadenza);
+        }
+        temp = temp->next;
+    }
+
+    printf("\n⏳ Attività in Corso:\n");
+    temp = lista;
+    while (temp != NULL) {
+        if (!temp->attivita.completato) {
+            int giorno, mese, anno;
+            sscanf(temp->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
+            int giorni_rimanenti = (anno - (tm.tm_year + 1900)) * 365 + (mese - (tm.tm_mon + 1)) * 30 + (giorno - tm.tm_mday);
+            if (giorni_rimanenti >= 0) {
+                printf("- %s (%d giorni rimanenti)\n", temp->attivita.descrizione, giorni_rimanenti);
+            }
+        }
+        temp = temp->next;
+    }
+
+    printf("\n❌ Attività in Ritardo:\n");
+    temp = lista;
+    while (temp != NULL) {
+        if (!temp->attivita.completato) {
+            int giorno, mese, anno;
+            sscanf(temp->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
+            int giorni_rimanenti = (anno - (tm.tm_year + 1900)) * 365 + (mese - (tm.tm_mon + 1)) * 30 + (giorno - tm.tm_mday);
+            if (giorni_rimanenti < 0) {
+                printf("- %s (%d giorni di ritardo)\n", temp->attivita.descrizione, -giorni_rimanenti);
+            }
+        }
+        temp = temp->next;
+    }
+}
+
 
 /*
 --------------------------------------------------------
