@@ -77,3 +77,6 @@ void liberaMemoria(ListaAttivita *lista);
 
 // Crea una nuova attività richiedendo i dati all'utente
 Attivita creaAttivita();
+
+// Monitora il progresso delle attività
+void monitoraggioProgresso(ListaAttivita lista);
