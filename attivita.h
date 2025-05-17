@@ -80,3 +80,6 @@ Attivita creaAttivita();
 
 // Monitora il progresso delle attività
 void monitoraggioProgresso(ListaAttivita lista);
+
+// Genera un report settimanale delle attività
+void generaReportSettimanale(ListaAttivita lista);
