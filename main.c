@@ -28,7 +28,8 @@ void menu() {
     printf("2. Visualizza Attività\n");
     printf("3. Rimuovi Attività\n");
     printf("4. Monitoraggio del Progresso\n");
-    printf("5. Esci\n");
+    printf("5. Genera Report Settimanale\n");
+    printf("6. Esci\n");
     printf("Scelta: ");
 }
 
@@ -52,13 +53,14 @@ int main() {
         menu();
         scanf("%d", &scelta);
         getchar(); // Pulizia del buffer
-	 while(scelta<1||scelta>5)
+       while(scelta<1||scelta>6)
 		{
-		printf("L'input inserito non risulta valido, per favore inserire un numero da 1 a 5");
- menu();
+		printf("L'input inserito non risulta valido, per favore inserire un numero da 1 a 6");
+         menu();
         scanf("%d", &scelta);
         getchar();
-	}
+  	}
+
         switch (scelta) {
             case 1: {
                 // Creazione e inserimento di una nuova attività
@@ -83,6 +85,10 @@ int main() {
                 monitoraggioProgresso(lista);
                 break;
             case 5:
+                // Generazione del report settimanale
+                generaReportSettimanale(lista);
+                break;
+            case 6:
                 // Uscita e deallocazione della memoria
                 liberaMemoria(&lista);
                 printf("Uscita dal programma...\n");
@@ -90,7 +96,7 @@ int main() {
             default:
                 printf("Scelta non valida!\n");
         }
-    } while (scelta != 5);
+    } while (scelta != 6);
 
     return 0;
 }
