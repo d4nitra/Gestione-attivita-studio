@@ -17,3 +17,8 @@ clean:
 # Regola per eseguire il programma
 run: main.exe
 	./main.exe
+
+# Regola per eseguire il file di test
+test: test.c attivita.c attivita.h
+	gcc -o test.exe test.c attivita.c
+	./test.exe
