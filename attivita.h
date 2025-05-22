@@ -22,6 +22,7 @@
 |    - Tempo stimato di completamento (in ore)
 |    - Priorità dell'attività (0: Bassa, 1: Media, 2: Alta)
 |    - Stato di completamento (0: Non completato, 1: Completato)
+|    - Ore svolte (per calcolare il progresso)
 --------------------------------------------------------
 */
 typedef struct {
@@ -31,8 +32,8 @@ typedef struct {
     int tempoStimato;             // Ore stimate per completare l'attività
     int priorita;                 // Priorità dell'attività (0, 1, 2)
     int completato;               // Stato di completamento (0 o 1)
+    int oreSvolte;                // Ore già svolte per monitoraggio progresso
 } Attivita;
-
 /*
 --------------------------------------------------------
 |  Struttura dati 'Nodo'
@@ -78,8 +79,11 @@ void liberaMemoria(ListaAttivita *lista);
 // Crea una nuova attività richiedendo i dati all'utente
 Attivita creaAttivita();
 
-// Monitora il progresso delle attività
+// Monitora il progresso delle attività in base a scadenze e stato
 void monitoraggioProgresso(ListaAttivita lista);
 
-// Genera un report settimanale delle attività
+// Genera un report settimanale delle attività in tre categorie
 void generaReportSettimanale(ListaAttivita lista);
+
+// Aggiorna le ore svolte e lo stato di completamento di un'attività
+void aggiornaAttivita(ListaAttivita lista, const char *descrizione, int oreAggiunte);
