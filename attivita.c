@@ -10,10 +10,11 @@
 */
 
 #include "attivita.h"
+#include "utile.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h> 
+#include <time.h>
 /*
 --------------------------------------------------------
 |  Funzione: creaLista
@@ -167,37 +168,18 @@ void monitoraggioProgresso(ListaAttivita lista) {
 void generaReportSettimanale(ListaAttivita lista) {
     printf("\n--- Report Settimanale per Intervallo di Scadenza ---\n");
 
-    // Array per tracciare già stampati (massimo 52 settimane)
     int settimaneStampate[53] = {0};
 
     ListaAttivita temp = lista;
     while (temp != NULL) {
-        int giorno, mese, anno;
-        sscanf(temp->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
-
-        struct tm tm_scad = {0};
-        tm_scad.tm_mday = giorno;
-        tm_scad.tm_mon = mese - 1;
-        tm_scad.tm_year = anno - 1900;
-        mktime(&tm_scad);
-
-        char settimana_str[3];
-        strftime(settimana_str, sizeof(settimana_str), "%V", &tm_scad);
-        int settimana = atoi(settimana_str);
+        struct tm tm_scad = convertiData(temp->attivita.dataScadenza);
+        int settimana = calcolaSettimana(tm_scad);
 
         if (!settimaneStampate[settimana]) {
             settimaneStampate[settimana] = 1;
 
-            // Trova lunedì della settimana
-            struct tm tm_inizio = tm_scad;
-            while (tm_inizio.tm_wday != 1) { // 1 = lunedì
-                tm_inizio.tm_mday--;
-                mktime(&tm_inizio);
-            }
-
-            struct tm tm_fine = tm_inizio;
-            tm_fine.tm_mday += 6;
-            mktime(&tm_fine);
+            struct tm tm_inizio, tm_fine;
+            calcolaIntervalloSettimana(tm_scad, &tm_inizio, &tm_fine);
 
             char data_inizio[11], data_fine[11];
             strftime(data_inizio, sizeof(data_inizio), "%d/%m/%Y", &tm_inizio);
@@ -205,20 +187,10 @@ void generaReportSettimanale(ListaAttivita lista) {
 
             printf("\n📆 Settimana dal %s al %s:\n", data_inizio, data_fine);
 
-            // Scorri di nuovo per stampare attività della settimana
             ListaAttivita scan = lista;
             while (scan != NULL) {
-                int g, m, a;
-                sscanf(scan->attivita.dataScadenza, "%d/%d/%d", &g, &m, &a);
-                struct tm tm_att = {0};
-                tm_att.tm_mday = g;
-                tm_att.tm_mon = m - 1;
-                tm_att.tm_year = a - 1900;
-                mktime(&tm_att);
-
-                char w_str[3];
-                strftime(w_str, sizeof(w_str), "%V", &tm_att);
-                if (atoi(w_str) == settimana) {
+                struct tm tm_att = convertiData(scan->attivita.dataScadenza);
+                if (calcolaSettimana(tm_att) == settimana) {
                     printf("- %s (Scadenza: %s)\n", scan->attivita.descrizione, scan->attivita.dataScadenza);
                 }
                 scan = scan->next;
