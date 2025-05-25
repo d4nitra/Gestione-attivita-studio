@@ -153,60 +153,81 @@ void monitoraggioProgresso(ListaAttivita lista) {
         lista = lista->next;
     }
 }
-
 /*
 --------------------------------------------------------
 |  Funzione: generaReportSettimanale
-|  Scopo: Genera un report suddividendo le attività in tre categorie:
-|         completate, in corso e in ritardo, e le stampa su schermo.
+|  Scopo: Genera un report settimanale raggruppando le attività
+|         in base all'intervallo di date (lun-dom) della settimana
+|         in cui cade la scadenza.
 |  Parametri:
 |    - lista: puntatore alla testa della lista delle attività.
 |  Ritorno: Nessuno.
 --------------------------------------------------------
 */
 void generaReportSettimanale(ListaAttivita lista) {
-    printf("\n--- Report Settimanale ---\n");
-    printf("\n✅ Attività Completate:\n");
+    printf("\n--- Report Settimanale per Intervallo di Scadenza ---\n");
+
+    // Array per tracciare già stampati (massimo 52 settimane)
+    int settimaneStampate[53] = {0};
+
     ListaAttivita temp = lista;
     while (temp != NULL) {
-        if (temp->attivita.completato) {
-            printf("- %s (%s)\n", temp->attivita.descrizione, temp->attivita.dataScadenza);
-        }
-        temp = temp->next;
-    }
+        int giorno, mese, anno;
+        sscanf(temp->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
 
-    printf("\n⏳ Attività in Corso:\n");
-    temp = lista;
-    while (temp != NULL) {
-        if (!temp->attivita.completato) {
-            int giorno, mese, anno;
-            sscanf(temp->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
-            time_t t = time(NULL);
-            struct tm tm = *localtime(&t);
-            int giorni_rimanenti = (anno - (tm.tm_year + 1900)) * 365 + (mese - (tm.tm_mon + 1)) * 30 + (giorno - tm.tm_mday);
-            if (giorni_rimanenti >= 0) {
-                printf("- %s (%d giorni rimanenti)\n", temp->attivita.descrizione, giorni_rimanenti);
+        struct tm tm_scad = {0};
+        tm_scad.tm_mday = giorno;
+        tm_scad.tm_mon = mese - 1;
+        tm_scad.tm_year = anno - 1900;
+        mktime(&tm_scad);
+
+        char settimana_str[3];
+        strftime(settimana_str, sizeof(settimana_str), "%V", &tm_scad);
+        int settimana = atoi(settimana_str);
+
+        if (!settimaneStampate[settimana]) {
+            settimaneStampate[settimana] = 1;
+
+            // Trova lunedì della settimana
+            struct tm tm_inizio = tm_scad;
+            while (tm_inizio.tm_wday != 1) { // 1 = lunedì
+                tm_inizio.tm_mday--;
+                mktime(&tm_inizio);
             }
-        }
-        temp = temp->next;
-    }
 
-    printf("\n❌ Attività in Ritardo:\n");
-    temp = lista;
-    while (temp != NULL) {
-        if (!temp->attivita.completato) {
-            int giorno, mese, anno;
-            sscanf(temp->attivita.dataScadenza, "%d/%d/%d", &giorno, &mese, &anno);
-            time_t t = time(NULL);
-            struct tm tm = *localtime(&t);
-            int giorni_rimanenti = (anno - (tm.tm_year + 1900)) * 365 + (mese - (tm.tm_mon + 1)) * 30 + (giorno - tm.tm_mday);
-            if (giorni_rimanenti < 0) {
-                printf("- %s (%d giorni di ritardo)\n", temp->attivita.descrizione, -giorni_rimanenti);
+            struct tm tm_fine = tm_inizio;
+            tm_fine.tm_mday += 6;
+            mktime(&tm_fine);
+
+            char data_inizio[11], data_fine[11];
+            strftime(data_inizio, sizeof(data_inizio), "%d/%m/%Y", &tm_inizio);
+            strftime(data_fine, sizeof(data_fine), "%d/%m/%Y", &tm_fine);
+
+            printf("\n📆 Settimana dal %s al %s:\n", data_inizio, data_fine);
+
+            // Scorri di nuovo per stampare attività della settimana
+            ListaAttivita scan = lista;
+            while (scan != NULL) {
+                int g, m, a;
+                sscanf(scan->attivita.dataScadenza, "%d/%d/%d", &g, &m, &a);
+                struct tm tm_att = {0};
+                tm_att.tm_mday = g;
+                tm_att.tm_mon = m - 1;
+                tm_att.tm_year = a - 1900;
+                mktime(&tm_att);
+
+                char w_str[3];
+                strftime(w_str, sizeof(w_str), "%V", &tm_att);
+                if (atoi(w_str) == settimana) {
+                    printf("- %s (Scadenza: %s)\n", scan->attivita.descrizione, scan->attivita.dataScadenza);
+                }
+                scan = scan->next;
             }
         }
         temp = temp->next;
     }
 }
+
 
 /*
 --------------------------------------------------------
