@@ -159,7 +159,7 @@ void monitoraggioProgresso(ListaAttivita lista) {
 |  Funzione: generaReportSettimanale
 |  Scopo: Genera un report settimanale raggruppando le attività
 |         in base all'intervallo di date (lun-dom) della settimana
-|         in cui cade la scadenza.
+|         in cui cade la scadenza, indicando lo stato dell'attività.
 |  Parametri:
 |    - lista: puntatore alla testa della lista delle attività.
 |  Ritorno: Nessuno.
@@ -191,7 +191,21 @@ void generaReportSettimanale(ListaAttivita lista) {
             while (scan != NULL) {
                 struct tm tm_att = convertiData(scan->attivita.dataScadenza);
                 if (calcolaSettimana(tm_att) == settimana) {
-                    printf("- %s (Scadenza: %s)\n", scan->attivita.descrizione, scan->attivita.dataScadenza);
+                    printf("- %s (Scadenza: %s) - Stato: ", scan->attivita.descrizione, scan->attivita.dataScadenza);
+                    if (scan->attivita.completato) {
+                        printf("✅ Completata\n");
+                    } else {
+                        time_t now = time(NULL);
+                        struct tm oggi = *localtime(&now);
+                        int giorni_rimanenti = (tm_att.tm_year - oggi.tm_year) * 365 +
+                                               (tm_att.tm_mon - oggi.tm_mon) * 30 +
+                                               (tm_att.tm_mday - oggi.tm_mday);
+                        if (giorni_rimanenti >= 0) {
+                            printf("⏳ In Corso (%d giorni rimanenti)\n", giorni_rimanenti);
+                        } else {
+                            printf("❌ In Ritardo (%d giorni di ritardo)\n", -giorni_rimanenti);
+                        }
+                    }
                 }
                 scan = scan->next;
             }
@@ -199,6 +213,7 @@ void generaReportSettimanale(ListaAttivita lista) {
         temp = temp->next;
     }
 }
+
 
 
 /*
