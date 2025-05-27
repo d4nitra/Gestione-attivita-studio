@@ -1,0 +1,4 @@
+TC1 test1.in test1.out test1.actual
+TC2 test2.in test2.out test2.actual
+TC3 test3.in test3.out test3.actual
+
