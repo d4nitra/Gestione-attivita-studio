@@ -23,6 +23,11 @@ run: main.exe
 	./main.exe
 
 # Regola per eseguire il file di test
-test: test.c attivita.c utile.c attivita.h utile.h
-	gcc -o test.exe test.c attivita.c utile.c
-	./test.exe
+test:
+	gcc -o test1 test1.c attivita.c utile.c
+	./test1
+	gcc -o test2 test2.c attivita.c utile.c
+	./test2
+	gcc -o test3 test3.c attivita.c utile.c
+	./test3
+
