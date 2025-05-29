@@ -1,11 +1,11 @@
 /*
 ========================================================
-|  TEST2.C - Test automatico per aggiornamento progresso attività
+|  TEST2.C - Test aggiornamento del progresso attività
 |  Autore: Daniela Lucia Ruocco
 |  Data: 21/05/2025
-|  Descrizione: Questo test verifica che l'aggiornamento delle ore
-|               svolte modifichi correttamente lo stato dell'attività
-|               e il progresso venga calcolato correttamente.
+|  Descrizione: Verifica che l'aggiornamento delle ore svolte
+|               modifichi correttamente lo stato di completamento
+|               e il progresso di un'attività nella tabella hash.
 ========================================================
 */
 
@@ -17,11 +17,12 @@
 /*
 --------------------------------------------------------
 |  Funzione: confrontaOutput
-|  Scopo: Confronta riga per riga due file di testo per verificarne l'uguaglianza.
+|  Scopo: Confronta due file riga per riga per verificarne
+|         l'identità, utile per confronti automatici.
 |  Parametri:
-|    - output: percorso del file generato dal programma.
-|    - oracolo: percorso del file con il risultato atteso.
-|  Ritorno: 1 se i file sono uguali, 0 altrimenti.
+|    - output: file generato dal programma
+|    - oracolo: file di output atteso
+|  Ritorno: 1 se uguali, 0 se diversi
 --------------------------------------------------------
 */
 int confrontaOutput(const char *output, const char *oracolo) {
@@ -29,18 +30,19 @@ int confrontaOutput(const char *output, const char *oracolo) {
     FILE *f2 = fopen(oracolo, "r");
     if (!f1 || !f2) return 0;
 
-    char line1[1024], line2[1024];
-    while (fgets(line1, sizeof(line1), f1) && fgets(line2, sizeof(line2), f2)) {
-        line1[strcspn(line1, "\r\n")] = 0;
-        line2[strcspn(line2, "\r\n")] = 0;
-        if (strcmp(line1, line2) != 0) {
+    char linea1[1024], linea2[1024];
+    while (fgets(linea1, sizeof(linea1), f1) && fgets(linea2, sizeof(linea2), f2)) {
+        linea1[strcspn(linea1, "\r\n")] = 0;
+        linea2[strcspn(linea2, "\r\n")] = 0;
+        if (strcmp(linea1, linea2) != 0) {
             fclose(f1);
             fclose(f2);
             return 0;
         }
     }
-    int fine1 = fgets(line1, sizeof(line1), f1) == NULL;
-    int fine2 = fgets(line2, sizeof(line2), f2) == NULL;
+
+    int fine1 = fgets(linea1, sizeof(linea1), f1) == NULL;
+    int fine2 = fgets(linea2, sizeof(linea2), f2) == NULL;
     fclose(f1);
     fclose(f2);
     return fine1 && fine2;
@@ -49,10 +51,9 @@ int confrontaOutput(const char *output, const char *oracolo) {
 /*
 --------------------------------------------------------
 |  Funzione: main
-|  Scopo: Esegue il test per aggiornare le ore svolte su un'attività
-|         e verificarne la corretta modifica del progresso e stato.
-|  Parametri: Nessuno.
-|  Ritorno: 0 se il test è eseguito correttamente.
+|  Scopo: Inserisce un'attività da file, ne aggiorna il
+|         progresso e verifica il risultato con l'oracolo.
+|  Ritorno: 0 se il test è completato correttamente
 --------------------------------------------------------
 */
 int main() {
@@ -63,35 +64,47 @@ int main() {
         return 1;
     }
 
-    ListaAttivita lista = creaLista();
+    // Creazione della tabella hash
+    TabellaAttivita *tabella = creaTabella();
     char descrizione[100], corso[50], data[11];
     int ore, priorita, oreAggiunte;
 
-    // Caricamento attività da file
-    fscanf(input, "%99[^;];%49[^;];%10[^;];%d;%d;%d\n", descrizione, corso, data, &ore, &priorita, &oreAggiunte);
-    Attivita a = {"", "", "", 0, 0, 0, 0};
-    strcpy(a.descrizione, descrizione);
-    strcpy(a.corso, corso);
-    strcpy(a.dataScadenza, data);
-    a.tempoStimato = ore;
-    a.priorita = priorita;
-    aggiungiAttivita(&lista, a);
+    // Lettura singola attività dal file di input
+    fscanf(input, "%99[^;];%49[^;];%10[^;];%d;%d;%d\n",
+           descrizione, corso, data, &ore, &priorita, &oreAggiunte);
 
-    aggiornaAttivita(lista, descrizione, oreAggiunte); // Aggiornamento ore
+    Attivita nuova;
+    nuova.id = 0;
+    strcpy(nuova.descrizione, descrizione);
+    strcpy(nuova.corso, corso);
+    strcpy(nuova.dataScadenza, data);
+    nuova.tempoStimato = ore;
+    nuova.oreSvolte = 0;
+    nuova.priorita = priorita;
+    nuova.completato = 0;
 
-    FILE *original_stdout = stdout;
+    // Inserimento nella tabella e ottenimento ID
+    int idGenerato = inserisciAttivita(tabella, nuova);
+
+    // Aggiornamento del progresso tramite ID
+    aggiornaAttivita(tabella, idGenerato, oreAggiunte);
+
+    // Redirezione dell'output su file .actual
+    FILE *originale = stdout;
     stdout = output;
-    visualizzaAttivita(lista);
+    visualizzaAttivita(tabella);
     fflush(stdout);
-    stdout = original_stdout;
-    fclose(output);
-    fclose(input);
-    liberaMemoria(&lista);
+    stdout = originale;
 
+    fclose(input);
+    fclose(output);
+    liberaTabella(tabella);
+
+    // Verifica automatica del risultato
     if (confrontaOutput("test2.actual", "test2.out")) {
-        printf("TEST 2: PASS\n");
+        printf("TEST 2: PASS ✅\n");
     } else {
-        printf("TEST 2: FAIL\n");
+        printf("TEST 2: FAIL ❌\n");
     }
 
     return 0;

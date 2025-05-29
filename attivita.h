@@ -1,89 +1,96 @@
 /*
 ========================================================
-|  ATTIVITA.H - Header File per la gestione delle Attività di Studio
+|  ATTIVITA.H - Header per la gestione della tabella hash
 |  Autore: Daniela Lucia Ruocco
-|  Data: 17/05/2025
-|  Descrizione: Questo file definisce le strutture dati e i prototipi
-|               delle funzioni per la gestione di una lista di attività.
+|  Data: 21/05/2025
+|  Descrizione: Interfaccia delle funzioni e strutture
+|               utilizzate per gestire le attività
+|               tramite tabella hash.
 ========================================================
 */
- // Dichiarazioni delle costanti riguardanti la massima lunghezza di caratteri che possono costituire le variabili riguardanti il corso, la descrizione e le attività
+
+#include <stdio.h>
+
 #define MAX_DESC 100
 #define MAX_CORSO 50
-#define MAX_DATE 11
+#define MAX_DATA 11
+#define TABELLA_DIM 101
 
 /*
 --------------------------------------------------------
-|  Struttura dati 'Attivita'
-|  Descrizione: Rappresenta un'attività di studio con:
-|    - Descrizione dell'attività
-|    - Corso di appartenenza
-|    - Data di scadenza
-|    - Tempo stimato di completamento (in ore)
-|    - Priorità dell'attività (0: Bassa, 1: Media, 2: Alta)
-|    - Stato di completamento (0: Non completato, 1: Completato)
-|    - Ore svolte (per calcolare il progresso)
+|  Struttura: Attivita
+|  Descrizione: Modello che rappresenta un'attività
+|               inserita dallo studente
 --------------------------------------------------------
 */
 typedef struct {
-    char descrizione[MAX_DESC];   // Testo descrittivo dell'attività
-    char corso[MAX_CORSO];        // Corso universitario di riferimento
-    char dataScadenza[MAX_DATE];  // Data di scadenza nel formato gg/mm/aaaa
-    int tempoStimato;             // Ore stimate per completare l'attività
-    int priorita;                 // Priorità dell'attività (0, 1, 2)
-    int completato;               // Stato di completamento (0 o 1)
-    int oreSvolte;                // Ore già svolte per monitoraggio progresso
+    int id;                         // Identificativo univoco
+    char descrizione[MAX_DESC];     // Descrizione sintetica
+    char corso[MAX_CORSO];          // Corso di appartenenza
+    char dataScadenza[MAX_DATA];    // Scadenza nel formato gg/mm/aaaa
+    int tempoStimato;               // Tempo previsto in ore
+    int oreSvolte;                  // Ore effettivamente svolte
+    int priorita;                   // 0=bassa, 1=media, 2=alta
+    int completato;                 // 1=completato, 0=incompleto
 } Attivita;
+
 /*
 --------------------------------------------------------
-|  Struttura dati 'Nodo'
-|  Descrizione: Nodo della lista concatenata, contiene:
-|    - Un'attività di tipo 'Attivita'
-|    - Un puntatore al prossimo nodo della lista
+|  Struttura: Nodo
+|  Descrizione: Nodo per la lista concatenata in ogni
+|               slot della tabella hash
 --------------------------------------------------------
 */
 typedef struct Nodo {
-    Attivita attivita;            // Informazioni sull'attività
-    struct Nodo *next;            // Puntatore al prossimo nodo
+    Attivita attivita;
+    struct Nodo* successivo;
 } Nodo;
-
-// Definizione di un puntatore alla lista di attività
-typedef Nodo* ListaAttivita;
 
 /*
 --------------------------------------------------------
-|  Dichiarazione delle Funzioni
-|  Descrizione: Prototipi delle funzioni che gestiscono
-|               le operazioni principali sulla lista.
+|  Struttura: TabellaAttivita
+|  Descrizione: Contenitore hash per gestire le attività
 --------------------------------------------------------
 */
+typedef struct {
+    Nodo* contenitori[TABELLA_DIM];
+    int ultimoID;
+} TabellaAttivita;
 
-// Crea una lista di attività vuota
-ListaAttivita creaLista();
+/*
+========================================================
+|                   PROTOTIPI FUNZIONI                |
+========================================================
+*/
 
-// Aggiunge una nuova attività alla lista
-void aggiungiAttivita(ListaAttivita *lista, Attivita nuovaAttivita);
+// Crea e inizializza una nuova tabella
+TabellaAttivita* creaTabella();
 
-// Visualizza tutte le attività presenti nella lista
-void visualizzaAttivita(ListaAttivita lista);
+// Inserisce una nuova attività, restituendo il suo ID
+int inserisciAttivita(TabellaAttivita* tabella, Attivita nuova);
 
-// Cerca un'attività nella lista tramite la descrizione
-Nodo* ricercaAttivita(ListaAttivita lista, const char *descrizione);
+// Mostra tutte le attività salvate
+void visualizzaAttivita(TabellaAttivita* tabella);
 
-// Rimuove un'attività dalla lista tramite la descrizione
-void rimuoviAttivita(ListaAttivita *lista, const char *descrizione);
+// Cerca un'attività tramite ID
+Attivita* cercaAttivita(TabellaAttivita* tabella, int identificativo);
 
-// Libera la memoria allocata per la lista
-void liberaMemoria(ListaAttivita *lista);
+// Aggiorna le ore svolte di un'attività
+void aggiornaAttivita(TabellaAttivita* tabella, int identificativo, int ore);
 
-// Crea una nuova attività richiedendo i dati all'utente
+// Rimuove un'attività in base all'ID
+void rimuoviAttivita(TabellaAttivita* tabella, int identificativo);
+
+// Dealloca la memoria della tabella
+void liberaTabella(TabellaAttivita* tabella);
+
+// Crea una nuova attività acquisendo dati dall'utente
 Attivita creaAttivita();
 
-// Monitora il progresso delle attività in base a scadenze e stato
-void monitoraggioProgresso(ListaAttivita lista);
+// Stampa stato temporale delle attività
+void monitoraggioProgresso(TabellaAttivita* tabella);
 
-// Genera un report settimanale delle attività in tre categorie
-void generaReportSettimanale(ListaAttivita lista);
+// Stampa report settimanale delle attività
+void generaReportSettimanale(TabellaAttivita* tabella);
 
-// Aggiorna le ore svolte e lo stato di completamento di un'attività
-void aggiornaAttivita(ListaAttivita lista, const char *descrizione, int oreAggiunte);
+

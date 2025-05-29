@@ -1,18 +1,30 @@
 
-Descrizione dell'attività: Esercizi Matematica
-Corso di appartenenza: Analisi
-Data di scadenza: 25/05/2025
-Tempo stimato da dedicare all'attività: 5 ore
+ID: 1
+Descrizione: Studio Algoritmi
+Corso: Algoritmi e Strutture Dati
+Scadenza: 25/05/2025
+Ore stimate da dedicare all'attività in totale: 10
 Ore svolte: 0
-Completato: No
-Priorità: Media
-Progresso: 0.00%
-
-Descrizione dell'attività: Studiare C
-Corso di appartenenza: Programmazione
-Data di scadenza: 30/05/2025
-Tempo stimato da dedicare all'attività: 10 ore
-Ore svolte: 0
-Completato: No
 Priorità: Alta
-Progresso: 0.00%
+Completato: No
+Progresso percentuale: 0.00%
+
+ID: 2
+Descrizione: Ripasso Sistemi
+Corso: Sistemi Operativi
+Scadenza: 28/05/2025
+Ore stimate da dedicare all'attività in totale: 5
+Ore svolte: 0
+Priorità: Media
+Completato: No
+Progresso percentuale: 0.00%
+
+ID: 3
+Descrizione: Progetto Reti
+Corso: Reti di Calcolatori
+Scadenza: 30/05/2025
+Ore stimate da dedicare all'attività in totale: 15
+Ore svolte: 0
+Priorità: Alta
+Completato: No
+Progresso percentuale: 0.00%

@@ -1,10 +1,10 @@
 /*
 ========================================================
-|  TEST1.C - Test automatico per l'inserimento e visualizzazione attività
+|  TEST1.C - Test su inserimento e visualizzazione con tabella hash
 |  Autore: Daniela Lucia Ruocco
 |  Data: 21/05/2025
-|  Descrizione: Questo test verifica che le attività vengano correttamente
-|               inserite e visualizzate a schermo nel formato previsto.
+|  Descrizione: Verifica l'inserimento di attività nella
+|               tabella hash e la corretta visualizzazione.
 ========================================================
 */
 
@@ -16,11 +16,12 @@
 /*
 --------------------------------------------------------
 |  Funzione: confrontaOutput
-|  Scopo: Confronta riga per riga due file di testo per verificarne l'uguaglianza.
+|  Scopo: Confronta due file riga per riga
+|         per verificarne l'identità.
 |  Parametri:
-|    - output: percorso del file generato dal programma.
-|    - oracolo: percorso del file con il risultato atteso.
-|  Ritorno: 1 se i file sono uguali, 0 altrimenti.
+|    - output: file generato dal programma
+|    - oracolo: file con risultato atteso
+|  Ritorno: 1 se uguali, 0 altrimenti
 --------------------------------------------------------
 */
 int confrontaOutput(const char *output, const char *oracolo) {
@@ -28,18 +29,19 @@ int confrontaOutput(const char *output, const char *oracolo) {
     FILE *f2 = fopen(oracolo, "r");
     if (!f1 || !f2) return 0;
 
-    char line1[1024], line2[1024];
-    while (fgets(line1, sizeof(line1), f1) && fgets(line2, sizeof(line2), f2)) {
-        line1[strcspn(line1, "\r\n")] = 0;
-        line2[strcspn(line2, "\r\n")] = 0;
-        if (strcmp(line1, line2) != 0) {
+    char linea1[1024], linea2[1024];
+    while (fgets(linea1, sizeof(linea1), f1) && fgets(linea2, sizeof(linea2), f2)) {
+        linea1[strcspn(linea1, "\r\n")] = 0;
+        linea2[strcspn(linea2, "\r\n")] = 0;
+        if (strcmp(linea1, linea2) != 0) {
             fclose(f1);
             fclose(f2);
             return 0;
         }
     }
-    int fine1 = fgets(line1, sizeof(line1), f1) == NULL;
-    int fine2 = fgets(line2, sizeof(line2), f2) == NULL;
+
+    int fine1 = fgets(linea1, sizeof(linea1), f1) == NULL;
+    int fine2 = fgets(linea2, sizeof(linea2), f2) == NULL;
     fclose(f1);
     fclose(f2);
     return fine1 && fine2;
@@ -48,52 +50,54 @@ int confrontaOutput(const char *output, const char *oracolo) {
 /*
 --------------------------------------------------------
 |  Funzione: main
-|  Scopo: Esegue il test per l'inserimento e la visualizzazione
-|         delle attività di studio. I dati sono letti da un file
-|         di input, inseriti nella lista e visualizzati su file.
-|  Parametri: Nessuno.
-|  Ritorno: 0 se il test è eseguito correttamente.
+|  Scopo: Inserisce attività da file e verifica la stampa
+|         confrontando l’output con l’oracolo.
+|  Ritorno: 0 se esecuzione riuscita
 --------------------------------------------------------
 */
 int main() {
     FILE *input = fopen("test1.in", "r");
     FILE *output = fopen("test1.actual", "w");
     if (!input || !output) {
-        printf("Errore apertura file input/output.\n");
+        printf("Errore apertura file.\n");
         return 1;
     }
 
-    ListaAttivita lista = creaLista(); // Creazione della lista
+    TabellaAttivita *tabella = creaTabella();
+
     char descrizione[100], corso[50], data[11];
     int ore, priorita;
 
-    // Lettura delle attività dal file di input
+    // Lettura da file .in e inserimento in tabella hash
     while (fscanf(input, "%99[^;];%49[^;];%10[^;];%d;%d\n", descrizione, corso, data, &ore, &priorita) == 5) {
-        Attivita a = {"", "", "", 0, 0, 0, 0};
+        Attivita a;
+        a.id = 0;
         strcpy(a.descrizione, descrizione);
         strcpy(a.corso, corso);
         strcpy(a.dataScadenza, data);
         a.tempoStimato = ore;
+        a.oreSvolte = 0;
         a.priorita = priorita;
-        aggiungiAttivita(&lista, a);
+        a.completato = 0;
+        inserisciAttivita(tabella, a);
     }
     fclose(input);
 
-    // Redirezione dell'output su file per la verifica
-    FILE *original_stdout = stdout;
+    // Redirezione output
+    FILE *stdout_backup = stdout;
     stdout = output;
-    visualizzaAttivita(lista);
+    visualizzaAttivita(tabella);
     fflush(stdout);
-    stdout = original_stdout;
+    stdout = stdout_backup;
     fclose(output);
 
-    liberaMemoria(&lista); // Libera la memoria allocata
+    liberaTabella(tabella);
 
-    // Confronto con l'output atteso
+    // Confronto output effettivo con output atteso
     if (confrontaOutput("test1.actual", "test1.out")) {
-        printf("TEST 1: PASS\n");
+        printf("TEST 1: PASS ✅\n");
     } else {
-        printf("TEST 1: FAIL\n");
+        printf("TEST 1: FAIL ❌\n");
     }
 
     return 0;

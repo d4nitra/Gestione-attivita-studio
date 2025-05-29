@@ -1,11 +1,11 @@
 /*
 ========================================================
-|  TEST3.C - Test automatico per la generazione del report settimanale
+|  TEST3.C - Verifica della generazione del report settimanale
 |  Autore: Daniela Lucia Ruocco
 |  Data: 21/05/2025
-|  Descrizione: Questo test verifica che la funzione generaReportSettimanale()
-|               produca un output corretto, raggruppando le attività per settimana
-|               e mostrando lo stato di ogni attività.
+|  Descrizione: Inserisce più attività con scadenze diverse
+|               e genera il report settimanale, confrontando
+|               il risultato con un oracolo.
 ========================================================
 */
 
@@ -17,11 +17,12 @@
 /*
 --------------------------------------------------------
 |  Funzione: confrontaOutput
-|  Scopo: Confronta riga per riga due file di testo per verificarne l'uguaglianza.
+|  Scopo: Confronta due file riga per riga per verificare
+|         che il comportamento del programma sia corretto.
 |  Parametri:
-|    - output: percorso del file generato dal programma.
-|    - oracolo: percorso del file con il risultato atteso.
-|  Ritorno: 1 se i file sono uguali, 0 altrimenti.
+|    - output: percorso file generato
+|    - oracolo: percorso file atteso
+|  Ritorno: 1 se uguali, 0 se diversi
 --------------------------------------------------------
 */
 int confrontaOutput(const char *output, const char *oracolo) {
@@ -29,25 +30,19 @@ int confrontaOutput(const char *output, const char *oracolo) {
     FILE *f2 = fopen(oracolo, "r");
     if (!f1 || !f2) return 0;
 
-    char line1[1024], line2[1024];
-    int riga = 1;
-    while (fgets(line1, sizeof(line1), f1) && fgets(line2, sizeof(line2), f2)) {
-        // Rimuove newline finali
-        line1[strcspn(line1, "\r\n")] = 0;
-        line2[strcspn(line2, "\r\n")] = 0;
-
-        if (strcmp(line1, line2) != 0) {
+    char linea1[1024], linea2[1024];
+    while (fgets(linea1, sizeof(linea1), f1) && fgets(linea2, sizeof(linea2), f2)) {
+        linea1[strcspn(linea1, "\r\n")] = 0;
+        linea2[strcspn(linea2, "\r\n")] = 0;
+        if (strcmp(linea1, linea2) != 0) {
             fclose(f1);
             fclose(f2);
             return 0;
         }
-        riga++;
     }
 
-    // Verifica se entrambi i file sono finiti
-    int fine1 = fgets(line1, sizeof(line1), f1) == NULL;
-    int fine2 = fgets(line2, sizeof(line2), f2) == NULL;
-
+    int fine1 = fgets(linea1, sizeof(linea1), f1) == NULL;
+    int fine2 = fgets(linea2, sizeof(linea2), f2) == NULL;
     fclose(f1);
     fclose(f2);
     return fine1 && fine2;
@@ -56,52 +51,53 @@ int confrontaOutput(const char *output, const char *oracolo) {
 /*
 --------------------------------------------------------
 |  Funzione: main
-|  Scopo: Esegue il test per la funzione generaReportSettimanale()
-|         caricando le attività da un file, generando un report,
-|         e confrontando il risultato con l'output atteso.
-|  Parametri: Nessuno.
-|  Ritorno: 0 se il test è eseguito con successo.
+|  Scopo: Inserisce attività da file, genera il report
+|         settimanale e confronta l'output con l'atteso.
+|  Ritorno: 0 se tutto va a buon fine.
 --------------------------------------------------------
 */
 int main() {
     FILE *input = fopen("test3.in", "r");
     FILE *output = fopen("test3.actual", "w");
     if (!input || !output) {
-        printf("Errore apertura file input/output.\n");
+        printf("Errore apertura file test3.in o test3.actual.\n");
         return 1;
     }
 
-    ListaAttivita lista = creaLista();
+    TabellaAttivita *tabella = creaTabella();
     char descrizione[100], corso[50], data[11];
     int ore, priorita;
 
-    // Caricamento delle attività da file
+    // Lettura e inserimento multiplo di attività da file
     while (fscanf(input, "%99[^;];%49[^;];%10[^;];%d;%d\n", descrizione, corso, data, &ore, &priorita) == 5) {
-        Attivita a = {"", "", "", 0, 0, 0, 0};
+        Attivita a;
+        a.id = 0;
         strcpy(a.descrizione, descrizione);
         strcpy(a.corso, corso);
         strcpy(a.dataScadenza, data);
         a.tempoStimato = ore;
+        a.oreSvolte = 0;
         a.priorita = priorita;
-        aggiungiAttivita(&lista, a);
+        a.completato = 0;
+        inserisciAttivita(tabella, a);
     }
     fclose(input);
 
-    // Redirezione dello stdout su file per catturare l'output
-    FILE *original_stdout = stdout;
+    // Redirezione dell'output
+    FILE *originale = stdout;
     stdout = output;
-    generaReportSettimanale(lista);
+    generaReportSettimanale(tabella);
     fflush(stdout);
-    stdout = original_stdout;
+    stdout = originale;
     fclose(output);
 
-    liberaMemoria(&lista);
+    liberaTabella(tabella);
 
-    // Confronto con l'oracolo
+    // Verifica con oracolo
     if (confrontaOutput("test3.actual", "test3.out")) {
-        printf("TEST 3: PASS\n");
+        printf("TEST 3: PASS ✅\n");
     } else {
-        printf("TEST 3: FAIL\n");
+        printf("TEST 3: FAIL ❌\n");
     }
 
     return 0;
