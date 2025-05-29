@@ -117,11 +117,13 @@ Attivita* cercaAttivita(TabellaAttivita* tabella, int identificativo) {
 /*
 --------------------------------------------------------
 |  Funzione: aggiornaAttivita
-|  Scopo: Aggiorna le ore svolte per un'attività e lo stato.
+|  Scopo: Permette all'utente di aggiornare le ore svolte
+|         per una specifica attività, identificata tramite ID.
+|         Verifica l'input e aggiorna lo stato e il progresso.
 |  Parametri:
-|    - tabella: struttura contenente le attività.
-|    - id: ID dell'attività da aggiornare.
-|    - ore: nuove ore da aggiungere.
+|    - tabella: struttura TabellaAttivita.
+|    - id: identificativo della specifica attività
+|    - ore: ore svolte da aggiungere per aggiornare l'attività
 |  Ritorno: Nessuno.
 --------------------------------------------------------
 */
@@ -234,13 +236,29 @@ Attivita creaAttivita() {
         fgets(nuova.dataScadenza, MAX_DATA, stdin);
         nuova.dataScadenza[strcspn(nuova.dataScadenza, "\n")] = 0;
     }
-
-    printf("Tempo stimato da dedicare all'attività(in ore): ");
-    scanf("%d", &nuova.tempoStimato);
-
-    printf("Priorità (0: Bassa, 1: Media, 2 o superiore: Alta): ");
-    scanf("%d", &nuova.priorita);
     getchar();
+
+    while (1) {
+        printf("Tempo stimato da dedicare all'attività (in ore): ");
+        char buffer[50];
+        fgets(buffer, sizeof(buffer), stdin);
+        if (sscanf(buffer, "%d", &nuova.tempoStimato) == 1 && nuova.tempoStimato > 0) {
+            break;
+        } else {
+            printf(" Inserisci un numero intero positivo valido.\n");
+        }
+    }
+   // Inserimento priorità con controllo di validità
+    while (1) {
+        printf("Priorità (0: Bassa, 1: Media, 2 o superiore: Alta): ");
+        char buffer[20];
+        fgets(buffer, sizeof(buffer), stdin);
+        if (sscanf(buffer, "%d", &nuova.priorita) == 1 && nuova.priorita >= 0) {
+            break;
+        } else {
+        printf(" Inserisci un numero intero valido maggiore o uguale a 0.\n");
+        }
+}
 
     nuova.oreSvolte = 0;
     nuova.completato = 0;

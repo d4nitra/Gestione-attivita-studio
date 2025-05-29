@@ -50,12 +50,36 @@ void menu() {
 int main() {
     TabellaAttivita* archivio = creaTabella(); // inizializza tabella hash
     int scelta;
+    char buffer[20];
+
+    // Costringe la prima scelta a essere 1 o 7
+    do {
+        printf("\n==== GESTIONE ATTIVITÀ DI STUDIO ====\n");
+        printf("1. Aggiungi nuova attività\n");
+        printf("7. Esci\n");
+        printf("Scelta iniziale obbligatoria: ");
+        fgets(buffer, sizeof(buffer), stdin);
+        sscanf(buffer, "%d", &scelta);
+        if (scelta != 1 && scelta != 7) {
+            printf(" Puoi solo iniziare aggiungendo un'attività (1) o uscendo (7).\n");
+        }
+    } while (scelta != 1 && scelta != 7);
+    if (scelta == 1) {
+                // Inserimento di una nuova attività
+                Attivita nuova = creaAttivita();
+                int id = inserisciAttivita(archivio, nuova);
+                printf("Attività inserita con successo! ID assegnato: %d\n", id);
+    }
+    if (scelta == 7) {
+        liberaTabella(archivio);
+        printf("Chiusura del programma...\n");
+        return 0;
+    }
 
     do {
         menu();
         scanf("%d", &scelta);
         getchar();  // pulizia buffer input
-
         switch (scelta) {
             case 1: {
                 // Inserimento di una nuova attività
@@ -71,26 +95,63 @@ int main() {
                 break;
 
             case 3: {
-                // Rimozione attività tramite ID
-                int id;
-                printf("Inserisci l'ID dell'attività da rimuovere: ");
-                scanf("%d", &id);
-                getchar();
-                rimuoviAttivita(archivio, id);
-                break;
-            }
+                   // Rimozione attività con controlli sull'ID
+                    char buffer[20];
+                    int id;
+
+                     while (1) {
+                           printf("Inserisci l'ID dell'attività da rimuovere: ");
+                           fgets(buffer, sizeof(buffer), stdin);
+                           if (sscanf(buffer, "%d", &id) == 1 && id > 0) {
+                           if (cercaAttivita(archivio, id)) {
+                               rimuoviAttivita(archivio, id);
+                               break;
+                            } else {
+                              printf(" Nessuna attività trovata con ID %d.\n", id);
+                             }
+                             } else {
+                                printf(" Inserisci un numero intero positivo valido per l'ID.\n");
+                            }
+                         }
+    break;
+}
+
 
             case 4: {
-                // Aggiornamento ore svolte
-                int id, ore;
-                printf("Inserisci l'ID dell'attività da aggiornare: ");
-                scanf("%d", &id);
-                printf("Ore da aggiungere: ");
-                scanf("%d", &ore);
-                getchar();
-                aggiornaAttivita(archivio, id, ore);
-                break;
-            }
+                     // Aggiornamento ore svolte con controlli
+                    char buffer[20];
+                    int id, ore;
+
+                    // Controllo su ID
+                    while (1) {
+                        printf("Inserisci l'ID dell'attività da aggiornare: ");
+                        fgets(buffer, sizeof(buffer), stdin);
+                        if (sscanf(buffer, "%d", &id) == 1 && id > 0) {
+                        if (cercaAttivita(archivio, id)) {
+                            break;
+                        } else {
+                            printf(" Nessuna attività trovata con ID %d.\n", id);
+                        }
+                        } else {
+                                printf("Inserisci un numero intero positivo valido per l'ID.\n");
+                        }
+                    }
+
+                    // Controllo su ore da aggiungere
+                    while (1) {
+                        printf("Ore da aggiungere: ");
+                        fgets(buffer, sizeof(buffer), stdin);
+                        if (sscanf(buffer, "%d", &ore) == 1 && ore > 0) {
+                           break;
+                       } else {
+                             printf(" Inserisci un numero intero positivo valido per le ore.\n");
+                         }
+    }
+
+    aggiornaAttivita(archivio, id, ore);
+    break;
+}
+
 
             case 5:
                 // Stampa stato attività
