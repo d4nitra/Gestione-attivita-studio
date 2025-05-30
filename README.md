@@ -92,7 +92,7 @@ cd gestione-attivita-studio
 
 Con `Makefile`:
 ```bash
-make        # Compila main.exe
+make run       # Compila main.exe
 make test   # Esegue tutti i test automatici
 make clean  # Rimuove file oggetto ed eseguibili
 ```

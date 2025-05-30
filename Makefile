@@ -16,7 +16,7 @@ main.o: main.c attivita.h
 
 # Regola per la pulizia dei file oggetto e dell'eseguibile
 clean:
-	rm -f *.o main.exe test.exe
+	rm -f *.o main.exe test1 test2 test3
 
 # Regola per eseguire il programma
 run: main.exe
