@@ -90,8 +90,8 @@ int main() {
             }
 
             case 2:
-                // Visualizzazione delle attività presenti
-                visualizzaAttivita(archivio);
+                // Visualizzazione delle attività filtrata
+                visualizzaInterattiva(archivio);
                 break;
 
             case 3: {

@@ -15,6 +15,7 @@
 #define MAX_CORSO 50
 #define MAX_DATA 11
 #define TABELLA_DIM 101
+#define MAX_ID 100
 
 /*
 --------------------------------------------------------
@@ -49,12 +50,15 @@ typedef struct Nodo {
 /*
 --------------------------------------------------------
 |  Struttura: TabellaAttivita
-|  Descrizione: Contenitore hash per gestire le attività
+|  Descrizione: Contenitore hash per gestire le attività.
+|               Tiene traccia anche degli ID eliminati
+|               per poterli riutilizzare.
 --------------------------------------------------------
 */
 typedef struct {
     Nodo* contenitori[TABELLA_DIM];
     int ultimoID;
+    int idDisponibili[MAX_ID];  // Aggiunto per riutilizzare gli ID
 } TabellaAttivita;
 
 /*
@@ -63,34 +67,33 @@ typedef struct {
 ========================================================
 */
 
-// Crea e inizializza una nuova tabella
+// Crea e inizializza una nuova tabella hash vuota
 TabellaAttivita* creaTabella();
 
-// Inserisce una nuova attività, restituendo il suo ID
+// Inserisce una nuova attività nella tabella e restituisce l'ID assegnato
 int inserisciAttivita(TabellaAttivita* tabella, Attivita nuova);
 
-// Mostra tutte le attività salvate
-void visualizzaAttivita(TabellaAttivita* tabella);
-
-// Cerca un'attività tramite ID
-Attivita* cercaAttivita(TabellaAttivita* tabella, int identificativo);
-
-// Aggiorna le ore svolte di un'attività
-void aggiornaAttivita(TabellaAttivita* tabella, int identificativo, int ore);
-
-// Rimuove un'attività in base all'ID
-void rimuoviAttivita(TabellaAttivita* tabella, int identificativo);
-
-// Dealloca la memoria della tabella
-void liberaTabella(TabellaAttivita* tabella);
-
-// Crea una nuova attività acquisendo dati dall'utente
+// Richiede all'utente i dati di una nuova attività e la restituisce
 Attivita creaAttivita();
 
-// Stampa stato temporale delle attività
+// Visualizza le attività secondo il filtro specificato (0: tutte, 1: in corso, 2: in ritardo, 3: completate)
+void visualizzaAttivita(TabellaAttivita* tabella, int filtro);
+
+// Permette all'utente di scegliere interattivamente il filtro per la visualizzazione
+void visualizzaInterattiva(TabellaAttivita* tabella);
+
+// Aggiunge ore svolte a un'attività specifica e aggiorna il suo stato
+void aggiornaAttivita(TabellaAttivita* tabella, int id, int ore);
+
+// Rimuove un'attività specifica dalla tabella tramite ID
+void rimuoviAttivita(TabellaAttivita* tabella, int id);
+
+// Mostra lo stato attuale (completata, in corso, in ritardo) di tutte le attività
 void monitoraggioProgresso(TabellaAttivita* tabella);
 
-// Stampa report settimanale delle attività
+// Genera un report raggruppando le attività per settimana di scadenza
 void generaReportSettimanale(TabellaAttivita* tabella);
 
+// Libera tutta la memoria allocata per la tabella hash
+void liberaTabella(TabellaAttivita* tabella);
 

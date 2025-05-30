@@ -39,10 +39,12 @@ TabellaAttivita* creaTabella() {
     TabellaAttivita* tabella = malloc(sizeof(TabellaAttivita));
     if (tabella) {
         for (int i = 0; i < TABELLA_DIM; i++) tabella->contenitori[i] = NULL;
-        tabella->ultimoID =1;
+        tabella->ultimoID = 1;
+        for (int i = 0; i < MAX_ID; i++) tabella->idDisponibili[i] = 0;
     }
     return tabella;
 }
+
 /*
 --------------------------------------------------------
 |  Funzione: inserisciAttivita
@@ -54,43 +56,100 @@ TabellaAttivita* creaTabella() {
 --------------------------------------------------------
 */
 int inserisciAttivita(TabellaAttivita* tabella, Attivita nuova) {
-    nuova.id = (tabella->ultimoID)++;
+    int nuovoID = -1;
+    for (int i = 1; i < MAX_ID; i++) {
+        if (tabella->idDisponibili[i]) {
+            nuovoID = i;
+            tabella->idDisponibili[i] = 0;
+            break;
+        }
+    }
+    if (nuovoID == -1) nuovoID = tabella->ultimoID++;
+
+    nuova.id = nuovoID;
     int indice = funzioneHash(nuova.id);
+
     Nodo* nuovoNodo = malloc(sizeof(Nodo));
     nuovoNodo->attivita = nuova;
     nuovoNodo->successivo = tabella->contenitori[indice];
     tabella->contenitori[indice] = nuovoNodo;
+
     return nuova.id;
 }
+
 
 /*
 --------------------------------------------------------
 |  Funzione: visualizzaAttivita
-|  Scopo: Visualizza tutte le attività memorizzate nella tabella.
+|  Scopo: Mostra le attività filtrate della tabella hash
 |  Parametri:
-|    - tabella: puntatore alla struttura HashTableAttivita.
-|  Ritorno: Nessuno.
+|    - tabella: puntatore alla TabellaAttivita
+|    - filtro: 0 tutte, 1 completate, 2 in corso, 3 in ritardo
+|  Ritorno: Nessuno
 --------------------------------------------------------
 */
-void visualizzaAttivita(TabellaAttivita* tabella) {
+void visualizzaAttivita(TabellaAttivita* tabella, int filtro) {
+    if (!tabella) {
+        printf("Tabella non inizializzata.\n");
+        return;
+    }
+
+    time_t ora = time(NULL);
+    struct tm oggi = *localtime(&ora);
+
     for (int i = 0; i < TABELLA_DIM; i++) {
-        Nodo* corrente = tabella->contenitori[i];
-        while (corrente != NULL) {
-            float progresso = (corrente->attivita.tempoStimato > 0) ? 
-                (100.0f * corrente->attivita.oreSvolte / corrente->attivita.tempoStimato) : 0;
-            printf("\nID: %d\nDescrizione: %s\nCorso: %s\nScadenza: %s\nOre stimate da dedicare all'attività in totale: %d\nOre svolte: %d\nPriorità: %s\nCompletato: %s\nProgresso percentuale: %.2f%%\n",
-                   corrente->attivita.id,
-                   corrente->attivita.descrizione,
-                   corrente->attivita.corso,
-                   corrente->attivita.dataScadenza,
-                   corrente->attivita.tempoStimato,
-                   corrente->attivita.oreSvolte,
-                   corrente->attivita.priorita == 2 ? "Alta" : corrente->attivita.priorita == 1 ? "Media" : "Bassa",
-                   corrente->attivita.completato ? "Sì" : "No",
-                   progresso);
-            corrente = corrente->successivo;
+        Nodo* nodo = tabella->contenitori[i];
+        while (nodo != NULL) {
+            Attivita a = nodo->attivita;
+            struct tm scadenza = convertiData(a.dataScadenza);
+            int giorni = difftime(mktime(&scadenza), mktime(&oggi)) / (60 * 60 * 24);
+            int mostra = 0;
+
+            if (filtro == 1) mostra = 1;
+            else if (filtro == 2 && a.completato) mostra = 1;
+            else if (filtro == 3 && !a.completato && giorni >= 0) mostra = 1;
+            else if (filtro == 4 && !a.completato && giorni < 0) mostra = 1;
+
+            if (mostra) {
+                float progresso = (a.tempoStimato > 0) ? ((float)a.oreSvolte / a.tempoStimato) * 100 : 0;
+                printf("\nID: %d\nDescrizione: %s\nCorso: %s\nScadenza: %s\nOre stimate da dedicare all'attività in totale: %d\nOre Svolte: %d\nPriorità: %s\nCompletato: %s\nProgresso percentuale: %.2f%%\n",
+                       a.id, a.descrizione, a.corso, a.dataScadenza,
+                       a.tempoStimato, a.oreSvolte,
+                       a.priorita >= 2 ? "Alta" : a.priorita == 1 ? "Media" : "Bassa",
+                       a.completato ? "Sì" : "No",
+                       progresso);
+            }
+            nodo = nodo->successivo;
         }
     }
+}
+
+/*
+--------------------------------------------------------
+|  Funzione: visualizzaInterattiva
+|  Scopo: Permette all'utente di scegliere il tipo di attività da visualizzare
+|  Parametri:
+|    - tabella: puntatore alla TabellaAttivita
+|  Ritorno: Nessuno
+--------------------------------------------------------
+*/
+void visualizzaInterattiva(TabellaAttivita* tabella) {
+    int scelta;
+    do {
+        printf("\n--- Visualizzazione Attività ---\n");
+        printf("1. Tutte le attività\n");
+        printf("2. Solo completate\n");
+        printf("3. Solo in corso\n");
+        printf("4. Solo in ritardo\n");
+        printf("Scelta: ");
+        if (scanf("%d", &scelta) != 1 || scelta < 0 || scelta > 4) {
+            printf("Input non valido. Inserire un numero tra 0 e 3.\n");
+            while (getchar() != '\n'); // svuota il buffer
+        }
+    } while (scelta < 0 || scelta > 3);
+
+    getchar(); // Pulisce il buffer dopo scanf
+    visualizzaAttivita(tabella, scelta);
 }
 
 
@@ -144,10 +203,14 @@ void aggiornaAttivita(TabellaAttivita* tabella, int identificativo, int ore) {
 /*
 --------------------------------------------------------
 |  Funzione: rimuoviAttivita
-|  Scopo: Rimuove un'attività dalla tabella usando l'ID.
+|  Scopo: Rimuove un'attività dalla tabella hash
+|         utilizzando il suo identificativo (ID).
+|         L'ID viene segnato come disponibile per un
+|         futuro riutilizzo.
 |  Parametri:
-|    - tabella: struttura con le attività.
-|    - id: identificatore dell'attività da rimuovere.
+|    - tabella: puntatore alla struttura TabellaAttivita.
+|    - identificativo: intero che rappresenta l'ID
+|                      dell'attività da rimuovere.
 |  Ritorno: Nessuno.
 --------------------------------------------------------
 */
@@ -155,21 +218,33 @@ void rimuoviAttivita(TabellaAttivita* tabella, int identificativo) {
     int indice = funzioneHash(identificativo);
     Nodo* corrente = tabella->contenitori[indice];
     Nodo* precedente = NULL;
+
+    // Ricerca del nodo da eliminare
     while (corrente && corrente->attivita.id != identificativo) {
         precedente = corrente;
         corrente = corrente->successivo;
     }
+
+    // Se l'attività non è stata trovata
     if (!corrente) {
-        printf("Attività non trovata.\n");
+        printf("  Attività con ID %d non trovata.\n", identificativo);
         return;
     }
+
+    // Rimozione del nodo dalla lista
     if (!precedente) {
+        // Primo elemento della lista
         tabella->contenitori[indice] = corrente->successivo;
     } else {
         precedente->successivo = corrente->successivo;
     }
+
+    // Libera la memoria e segna l'ID come disponibile
     free(corrente);
-    printf("Attività rimossa con successo.\n");
+    if (identificativo >= 1 && identificativo < MAX_ID)
+        tabella->idDisponibili[identificativo] = 1;
+
+    printf(" Attività con ID %d rimossa con successo. ID ora riutilizzabile.\n", identificativo);
 }
 
 /*
@@ -293,37 +368,74 @@ void monitoraggioProgresso(TabellaAttivita* tabella) {
         }
     }
 }
-
 /*
 --------------------------------------------------------
 |  Funzione: generaReportSettimanale
 |  Scopo: Stampa un report settimanale delle attività presenti nella tabella
-|  contestualizzando l'attività nella settimana precisa di scadenza di cui riporta data di inizio e fine
+|         contestualizzando l'attività nella settimana precisa di scadenza
+|         con data di inizio e fine settimana, differenziata anche per anno.
 |  Parametri:
 |    - tabella: struttura TabellaAttivita
 |  Ritorno: Nessuno
 --------------------------------------------------------
 */
 void generaReportSettimanale(TabellaAttivita* tabella) {
-    int stampate[53] = {0};
+    if (!tabella) {
+        printf("⚠️ Errore: tabella non inizializzata.\n");
+        return;
+    }
+
+    #define ANNO_MINIMO 1900
+    #define ANNO_MASSIMO 2100
+    #define MAX_SETTIMANE 54
+
+    int stampate[ANNO_MASSIMO - ANNO_MINIMO + 1][MAX_SETTIMANE] = {0};
+
     for (int i = 0; i < TABELLA_DIM; i++) {
         Nodo* nodo = tabella->contenitori[i];
         while (nodo != NULL) {
+            if (!dataValida(nodo->attivita.dataScadenza)) {
+                nodo = nodo->successivo;
+                continue;
+            }
+
             struct tm scad = convertiData(nodo->attivita.dataScadenza);
+            mktime(&scad); // normalizza la struct tm
+
             int sett = calcolaSettimana(scad);
-            if (!stampate[sett]) {
-                stampate[sett] = 1;
+            int anno = scad.tm_year + 1900;
+            if (anno < ANNO_MINIMO || anno > ANNO_MASSIMO || sett < 0 || sett >= MAX_SETTIMANE) {
+                nodo = nodo->successivo;
+                continue;
+            }
+
+            int annoIdx = anno - ANNO_MINIMO;
+
+            if (!stampate[annoIdx][sett]) {
+                stampate[annoIdx][sett] = 1;
+
                 struct tm inizio, fine;
                 calcolaIntervalloSettimana(scad, &inizio, &fine);
                 char dataI[11], dataF[11];
                 strftime(dataI, sizeof(dataI), "%d/%m/%Y", &inizio);
                 strftime(dataF, sizeof(dataF), "%d/%m/%Y", &fine);
                 printf("\n📅 Settimana dal %s al %s\n", dataI, dataF);
+
                 for (int j = 0; j < TABELLA_DIM; j++) {
                     Nodo* scan = tabella->contenitori[j];
                     while (scan != NULL) {
+                        if (!dataValida(scan->attivita.dataScadenza)) {
+                            scan = scan->successivo;
+                            continue;
+                        }
+
                         struct tm sc = convertiData(scan->attivita.dataScadenza);
-                        if (calcolaSettimana(sc) == sett) {
+                        mktime(&sc);
+
+                        int annoScan = sc.tm_year + 1900;
+                        int settScan = calcolaSettimana(sc);
+
+                        if (annoScan == anno && settScan == sett) {
                             printf("- %s (Scadenza: %s) [%s]\n",
                                    scan->attivita.descrizione,
                                    scan->attivita.dataScadenza,
