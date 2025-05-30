@@ -83,10 +83,10 @@ int main() {
     }
     fclose(input);
 
-    // Redirezione output
+    // Redirezione output su file .actual
     FILE *stdout_backup = stdout;
     stdout = output;
-    visualizzaAttivita(tabella);
+    visualizzaAttivita(tabella, 1); // visualizza tutte le attività
     fflush(stdout);
     stdout = stdout_backup;
     fclose(output);

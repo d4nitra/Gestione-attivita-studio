@@ -92,7 +92,7 @@ int main() {
     // Redirezione dell'output su file .actual
     FILE *originale = stdout;
     stdout = output;
-    visualizzaAttivita(tabella);
+    visualizzaAttivita(tabella, 1); // Visualizza solo attività completate
     fflush(stdout);
     stdout = originale;
 
@@ -109,3 +109,4 @@ int main() {
 
     return 0;
 }
+
