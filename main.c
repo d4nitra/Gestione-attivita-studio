@@ -22,6 +22,8 @@
 |  Scopo: Visualizza il menu principale di selezione.
 |  Parametri: Nessuno.
 |  Ritorno: Nessuno.
+|  Precondizioni: Nessuna
+|  Postcondizioni: Il menu è stampato a schermo per permettere la scelta
 --------------------------------------------------------
 */
 void menu() {
@@ -45,6 +47,8 @@ void menu() {
 |         - Invocazione delle operazioni core
 |  Parametri: Nessuno.
 |  Ritorno: 0 se terminato correttamente.
+|  Precondizioni: Nessuna
+|  Postcondizioni: Il programma viene eseguito fino a scelta dell'utente di terminare
 --------------------------------------------------------
 */
 int main() {

@@ -18,10 +18,14 @@
 /*
 --------------------------------------------------------
 |  Funzione: dataValida
-|  Scopo: Verifica che una data nel formato gg/mm/aaaa sia valida.
+|  Scopo: Verifica se una data è valida (giorno, mese, anno).
 |  Parametri:
-|    - data: stringa contenente la data.
-|  Ritorno: 1 se la data è valida, 0 altrimenti.
+|    - giorno: intero
+|    - mese: intero
+|    - anno: intero
+|  Ritorno: 1 se la data è valida, 0 altrimenti
+|  Precondizioni: giorno, mese, anno devono essere valori interi
+|  Postcondizioni: restituisce 1 se la data rappresenta un giorno esistente
 --------------------------------------------------------
 */
 int dataValida(const char* data) {
@@ -47,6 +51,8 @@ int dataValida(const char* data) {
 |  Parametri:
 |    - data: stringa della data nel formato gg/mm/aaaa.
 |  Ritorno: struttura tm corrispondente.
+|  Precondizioni: data != NULL e nel formato valido
+|  Postcondizioni: restituisce una struct tm con giorno, mese e anno impostati
 --------------------------------------------------------
 */
 struct tm convertiData(const char* data) {
@@ -64,6 +70,8 @@ struct tm convertiData(const char* data) {
 |  Parametri:
 |    - data: struttura tm della data da analizzare.
 |  Ritorno: Numero della settimana (0-52).
+|  Precondizioni: data valida
+|  Postcondizioni: restituisce il numero della settimana secondo convenzione ISO
 --------------------------------------------------------
 */
 int calcolaSettimana(struct tm data) {
@@ -82,6 +90,8 @@ int calcolaSettimana(struct tm data) {
 |    - inizio: puntatore alla data del lunedì
 |    - fine: puntatore alla data della domenica
 |  Ritorno: Nessuno
+|  Precondizioni: input valido, inizio e fine != NULL
+|  Postcondizioni: inizio e fine vengono riempiti con le date corrispondenti al lunedì e alla domenica
 --------------------------------------------------------
 */
 void calcolaIntervalloSettimana(struct tm input, struct tm* inizio, struct tm* fine) {
@@ -89,7 +99,7 @@ void calcolaIntervalloSettimana(struct tm input, struct tm* inizio, struct tm* f
     *fine = input;
     mktime(inizio); mktime(fine);
     int giornoSettimana = inizio->tm_wday;
-    if (giornoSettimana == 0) giornoSettimana = 7; // domenica -> 7
+    if (giornoSettimana == 0) giornoSettimana = 7; 
     inizio->tm_mday -= (giornoSettimana - 1);
     fine->tm_mday += (7 - giornoSettimana);
     mktime(inizio);

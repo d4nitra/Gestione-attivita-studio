@@ -97,3 +97,6 @@ void generaReportSettimanale(TabellaAttivita* tabella);
 // Libera tutta la memoria allocata per la tabella hash
 void liberaTabella(TabellaAttivita* tabella);
 
+// Cerca un attività specifica, funge da funzione ausiliaria e viene richiamata in altre per la modifica di specifici parametri di un attività
+Attivita* cercaAttivita(TabellaAttivita* tabella, int identificativo);
+

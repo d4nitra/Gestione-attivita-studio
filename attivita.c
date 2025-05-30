@@ -21,6 +21,8 @@
 |  Parametri:
 |    - id: ID numerico dell'attività.
 |  Ritorno: Indice della tabella hash corrispondente.
+|  Precondizioni: id >= 0
+|  Postcondizioni: restituisce un intero compreso tra 0 e TABELLA_DIM - 1
 --------------------------------------------------------
 */
 int funzioneHash(int identificativo) {
@@ -33,6 +35,8 @@ int funzioneHash(int identificativo) {
 |  Scopo: Inizializza una nuova tabella hash.
 |  Parametri: Nessuno.
 |  Ritorno: Puntatore alla nuova struttura HashTableAttivita.
+|  Precondizioni: Nessuna.
+|  Postcondizioni: La tabella è inizializzata con tutti i puntatori a NULL e gli ID disponibili a 0.
 --------------------------------------------------------
 */
 TabellaAttivita* creaTabella() {
@@ -53,6 +57,8 @@ TabellaAttivita* creaTabella() {
 |    - tabella: puntatore alla struttura HashTableAttivita.
 |    - nuova: struttura Attivita da inserire.
 |  Ritorno: ID assegnato all'attività.
+|  Precondizioni: tabella != NULL; i campi di "nuova" devono essere validi
+|  Postcondizioni: la nuova attività viene aggiunta alla tabella e viene restituito un ID univoco
 --------------------------------------------------------
 */
 int inserisciAttivita(TabellaAttivita* tabella, Attivita nuova) {
@@ -81,11 +87,13 @@ int inserisciAttivita(TabellaAttivita* tabella, Attivita nuova) {
 /*
 --------------------------------------------------------
 |  Funzione: visualizzaAttivita
-|  Scopo: Mostra le attività filtrate della tabella hash
+|  Scopo: Mostra le attività filtrate della tabella hash.
 |  Parametri:
 |    - tabella: puntatore alla TabellaAttivita
-|    - filtro: 0 tutte, 1 completate, 2 in corso, 3 in ritardo
+|    - filtro: 1 tutte, 2 completate, 3 in corso, 4 in ritardo
 |  Ritorno: Nessuno
+|  Precondizioni: tabella != NULL
+|  Postcondizioni: stampa a video le attività che soddisfano il filtro selezionato
 --------------------------------------------------------
 */
 void visualizzaAttivita(TabellaAttivita* tabella, int filtro) {
@@ -133,34 +141,36 @@ void visualizzaAttivita(TabellaAttivita* tabella, int filtro) {
 |  Ritorno: Nessuno
 --------------------------------------------------------
 */
-void visualizzaInterattiva(TabellaAttivita* tabella) {
+void visualizzaInterattiva(TabellaAttivita *tabella) {
     int scelta;
     do {
-        printf("\n--- Visualizzazione Attività ---\n");
-        printf("1. Tutte le attività\n");
+        printf("\nSeleziona tipo di attività da visualizzare:\n");
+        printf("1. Tutte\n");
         printf("2. Solo completate\n");
         printf("3. Solo in corso\n");
         printf("4. Solo in ritardo\n");
         printf("Scelta: ");
-        if (scanf("%d", &scelta) != 1 || scelta < 0 || scelta > 4) {
-            printf("Input non valido. Inserire un numero tra 0 e 3.\n");
+        if (scanf("%d", &scelta) != 1 || scelta < 1 || scelta > 4) {
+            printf("Input non valido. Inserire un numero tra 1 e 4.\n");
             while (getchar() != '\n'); // svuota il buffer
         }
-    } while (scelta < 0 || scelta > 3);
-
-    getchar(); // Pulisce il buffer dopo scanf
+    } while (scelta < 1 || scelta > 4);
+    getchar(); // pulizia buffer dopo scanf
     visualizzaAttivita(tabella, scelta);
 }
+
 
 
 /*
 --------------------------------------------------------
 |  Funzione: cercaAttivita
-|  Scopo: Ricerca un'attività nella tabella tramite il suo ID.
+|  Scopo: Cerca un'attività tramite ID nella tabella.
 |  Parametri:
-|    - tabella: puntatore alla struttura HashTableAttivita.
-|    - id: identificatore numerico dell'attività.
-|  Ritorno: Puntatore all'attività se trovata, NULL altrimenti.
+|    - tabella: struttura TabellaAttivita
+|    - identificativo: ID da cercare
+|  Ritorno: puntatore all'attività trovata o NULL
+|  Precondizioni: tabella != NULL, identificativo >= 0
+|  Postcondizioni: restituisce il puntatore all'attività se trovata, altrimenti NULL
 --------------------------------------------------------
 */
 Attivita* cercaAttivita(TabellaAttivita* tabella, int identificativo) {
@@ -184,6 +194,8 @@ Attivita* cercaAttivita(TabellaAttivita* tabella, int identificativo) {
 |    - id: identificativo della specifica attività
 |    - ore: ore svolte da aggiungere per aggiornare l'attività
 |  Ritorno: Nessuno.
+|  Precondizioni: tabella != NULL, id valido, ore > 0
+|  Postcondizioni: oreSvolte dell'attività aggiornata, completato settato se necessario
 --------------------------------------------------------
 */
 void aggiornaAttivita(TabellaAttivita* tabella, int identificativo, int ore) {
@@ -212,6 +224,8 @@ void aggiornaAttivita(TabellaAttivita* tabella, int identificativo, int ore) {
 |    - identificativo: intero che rappresenta l'ID
 |                      dell'attività da rimuovere.
 |  Ritorno: Nessuno.
+|  Precondizioni: tabella != NULL, identificativo valido
+|  Postcondizioni: l'attività è rimossa dalla tabella e l'ID reso riutilizzabile
 --------------------------------------------------------
 */
 void rimuoviAttivita(TabellaAttivita* tabella, int identificativo) {
@@ -250,10 +264,12 @@ void rimuoviAttivita(TabellaAttivita* tabella, int identificativo) {
 /*
 --------------------------------------------------------
 |  Funzione: liberaTabella
-|  Scopo: Dealloca tutta la memoria usata dalla tabella hash.
+|  Scopo: Dealloca la memoria della tabella hash e delle attività.
 |  Parametri:
-|    - tabella: struttura da liberare.
-|  Ritorno: Nessuno.
+|    - tabella: struttura TabellaAttivita da liberare
+|  Ritorno: Nessuno
+|  Precondizioni: tabella != NULL
+|  Postcondizioni: tutta la memoria occupata dalla tabella è liberata
 --------------------------------------------------------
 */
 void liberaTabella(TabellaAttivita* tabella) {
@@ -271,9 +287,11 @@ void liberaTabella(TabellaAttivita* tabella) {
 /*
 --------------------------------------------------------
 |  Funzione: creaAttivita
-|  Scopo: Crea un'attività acquisendo dati dall'utente.
-|  Parametri: Nessuno.
-|  Ritorno: Una nuova struttura Attivita.
+|  Scopo: Crea una nuova struttura Attivita acquisendo i dati da input utente.
+|  Parametri: Nessuno
+|  Ritorno: nuova struttura Attivita
+|  Precondizioni: input utente corretto
+|  Postcondizioni: restituisce una struttura Attivita inizializzata
 --------------------------------------------------------
 */
 Attivita creaAttivita() {
@@ -343,11 +361,13 @@ Attivita creaAttivita() {
 /*
 --------------------------------------------------------
 |  Funzione: monitoraggioProgresso
-|  Scopo: Verifica lo stato temporale di ogni attività rispetto alla data attuale. 
-|  Restituisce inoltre la percentuale di progresso rispetto al completamento dell'attività
+|  Scopo: Verifica lo stato temporale di ogni attività rispetto alla data attuale.
+|         Restituisce inoltre la percentuale di progresso rispetto al completamento.
 |  Parametri:
 |    - tabella: struttura TabellaAttivita
 |  Ritorno: Nessuno
+|  Precondizioni: tabella != NULL
+|  Postcondizioni: stampa a video per ogni attività il progresso e lo stato temporale
 --------------------------------------------------------
 */
 void monitoraggioProgresso(TabellaAttivita* tabella) {
@@ -371,12 +391,13 @@ void monitoraggioProgresso(TabellaAttivita* tabella) {
 /*
 --------------------------------------------------------
 |  Funzione: generaReportSettimanale
-|  Scopo: Stampa un report settimanale delle attività presenti nella tabella
-|         contestualizzando l'attività nella settimana precisa di scadenza
-|         con data di inizio e fine settimana, differenziata anche per anno.
+|  Scopo: Stampa un report settimanale delle attività presenti nella tabella,
+|         raggruppandole per settimana e anno.
 |  Parametri:
 |    - tabella: struttura TabellaAttivita
 |  Ritorno: Nessuno
+|  Precondizioni: tabella != NULL
+|  Postcondizioni: stampa a video un report suddiviso per settimana con le attività corrispondenti
 --------------------------------------------------------
 */
 void generaReportSettimanale(TabellaAttivita* tabella) {
