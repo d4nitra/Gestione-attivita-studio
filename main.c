@@ -29,7 +29,7 @@
 void menu() {
     printf("\n==== GESTIONE ATTIVITÀ DI STUDIO ====\n");
     printf("1. Aggiungi nuova attività\n");
-    printf("2. Visualizza tutte le attività\n");
+    printf("2. Visualizza le attività\n");
     printf("3. Rimuovi attività tramite ID\n");
     printf("4. Aggiorna ore svolte di un'attività\n");
     printf("5. Monitoraggio del progresso\n");
